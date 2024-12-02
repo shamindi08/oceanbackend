@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 
 // Use CORS and allow requests from specific origins
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://www.imeshashamindi.me'], // Frontend ports
+  origin: ['http://localhost:3000', 'https://www.imeshashamindi.me'], // Frontend ports
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed HTTP methods
   credentials: true,
