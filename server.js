@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 
 // Use CORS and allow requests from specific origins
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3009'], // Frontend ports
+  origin: ['http://localhost:3000', 'http://www.imeshashamindi.me'], // Frontend ports
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   credentials: true,
 }));
@@ -145,14 +145,14 @@ app.post('/api/forgot-password', async (req, res) => {
     );
 
     // 4. Generate the reset password link
-    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetLink = `https://oceanbackend-c54c9d8a19c1.herokuapp.com/reset-password/${resetToken}`;
 
     // 5. Send the reset password email
     await transporter.sendMail({
       to: user.email,
       from: process.env.EMAIL_USER,
       subject: 'Password Reset Request',
-      html: `<p>You requested a password reset. Click the link below to reset your password:</p><p><a href="http://localhost:3000/reset-password/${resetToken}">Reset Password</a></p>`
+      html: `<p>You requested a password reset. Click the link below to reset your password:</p><p><a href="https://oceanbackend-c54c9d8a19c1.herokuapp.com/reset-password/${resetToken}">Reset Password</a></p>`
     });
     await logUserActivity(user._id, "Password Reset Request", "User requested a password reset");
     // 6. Respond with success message
@@ -232,7 +232,7 @@ app.post("/api/signup", async (req, res) => {
       createdAt: new Date(),  // Track creation date for TTL
     });
 
-    const verificationLink = `http://localhost:5050/api/verify-email?token=${verificationToken}`;
+    const verificationLink = `https://oceanbackend-c54c9d8a19c1.herokuapp.com/api/verify-email?token=${verificationToken}`;
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
