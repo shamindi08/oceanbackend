@@ -185,8 +185,6 @@ app.post('/api/forgot-password', async (req, res) => {
 });
 
 
-
-
 // Reset Password Route - Verify Token and Update Password
 
 
@@ -411,6 +409,41 @@ app.get("/api/user/logout", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error during logout" });
   }
 });
+
+// Get all users (exclude admin user with email shamindigovipothage2021@gmail.com)
+app.get('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    // Fetch all users except the admin
+    const users = await usersCollection.find({ email: { $ne: 'shamindigovipothage2021@gmail.com' } }).toArray();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error.message);
+    res.status(500).json({ message: 'Server error while fetching users' });
+  }
+});
+
+
+// Delete user by ID
+app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Delete user without checking roles
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Optional: Log admin activity
+    await logUserActivity(req.user.id, 'Delete User', `Deleted user with ID: ${id}`);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error.message);
+    res.status(500).json({ message: 'Server error while deleting user' });
+  }
+});
+
 // Backend Code Example (Node.js + Express)
 app.get('/api/user/activity-logs', async (req, res) => {
   try {
@@ -439,6 +472,16 @@ app.get('/api/user/activity-logs', async (req, res) => {
     res.status(500).json({ message: 'Error fetching activity logs', error });
   }
 });
+
+
+
+
+
+
+
+
+
+
 
 
 
