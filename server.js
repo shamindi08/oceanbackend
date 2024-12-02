@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -6,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const MongoStore = require('connect-mongo');
 require("dotenv").config();
 const app = express();
 
@@ -73,6 +75,23 @@ async function logUserActivity(userId, activityType, activityDetails) {
   const activity = { userId, activityType, activityDetails, timestamp: new Date() };
   await activityCollection.insertOne(activity);
 }
+
+// Session management setup
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    client: client,
+    dbName: 'oceanbloom',
+    collectionName: 'sessions',
+    ttl: 14 * 24 * 60 * 60 // 14 days
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Set to true in production
+    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+  }
+}));
 
 // GET user profile
 app.get("/api/user/profile", authenticateToken, async (req, res) => {
@@ -392,6 +411,39 @@ app.get("/api/user/logout", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error during logout" });
   }
 });
+// Backend Code Example (Node.js + Express)
+app.get('/api/user/activity-logs', async (req, res) => {
+  try {
+    const adminEmail = 'shamindigovipothage2021@gmail.com';
+
+    // Fetch all logs
+    const logs = await ActivityLog.find();
+
+    // Process logs to:
+    // 1. Exclude logs from the adminEmail (except for sign-in)
+    // 2. Mark admin logins distinctly
+    const processedLogs = logs.map((log) => {
+      if (log.email === adminEmail && log.activityType === 'sign-in') {
+        // Identify admin login
+        return { ...log.toObject(), isAdminLogin: true };
+      } else if (log.email === adminEmail) {
+        // Exclude all other logs of adminEmail
+        return null;
+      }
+      return log.toObject(); // Include non-admin logs as is
+    }).filter((log) => log !== null); // Remove null values (excluded logs)
+
+    res.json(processedLogs);
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    res.status(500).json({ message: 'Error fetching activity logs', error });
+  }
+});
+
+
+
+
+
 // Start the server
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
